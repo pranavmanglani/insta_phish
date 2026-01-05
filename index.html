@@ -334,10 +334,14 @@
     <script>
         // Initialize Supabase client
         // Replace these with your actual Supabase credentials
-        const SUPABASE_URL = 'YOUR_SUPABASE_URL'; // e.g., https://xxxxx.supabase.co
-        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        const SUPABASE_URL = 'https://pvbkrahfgelbztrgelsa.supabase.co'; // e.g., https://xxxxx.supabase.co
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB2YmtyYWhmZ2VsYnp0cmdlbHNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyNzg5MzgsImV4cCI6MjA4Mjg1NDkzOH0.wZPtRyRg3owcNhrPmIt0D6nDjIgYFu31fX6UHp69NJM';
         
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Fix: Use the global supabase object correctly
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        console.log('Supabase client initialized:', supabaseClient);
 
         // Get form elements
         const loginForm = document.getElementById('loginForm');
@@ -358,24 +362,29 @@
 
             try {
                 // Query the credentials table
-                const { data, error } = await supabase
+                console.log('Attempting login for username:', username);
+                
+                const { data, error } = await supabaseClient
                     .from('credentials')
                     .select('*')
                     .eq('username', username)
                     .eq('password', password)
                     .single();
 
+                console.log('Query result:', { data, error });
+
                 if (error) {
                     if (error.code === 'PGRST116') {
                         // No rows returned - invalid credentials
                         showMessage('Invalid username or password', 'error');
                     } else {
-                        showMessage('An error occurred. Please try again.', 'error');
+                        showMessage('Error: ' + error.message, 'error');
                         console.error('Supabase error:', error);
                     }
                 } else if (data) {
                     // Successful login
                     showMessage('Login successful!', 'success');
+                    console.log('User data:', data);
                     
                     // Redirect or perform additional actions after successful login
                     setTimeout(() => {
@@ -384,7 +393,7 @@
                     }, 1500);
                 }
             } catch (err) {
-                showMessage('An unexpected error occurred.', 'error');
+                showMessage('An unexpected error occurred: ' + err.message, 'error');
                 console.error('Error:', err);
             } finally {
                 // Re-enable button
